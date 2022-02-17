@@ -21,6 +21,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"archive/zip"
 
@@ -119,7 +120,12 @@ func (a *api) Sign(codefreshHost string) (*certs.ServerCert, error) {
 	if err != nil {
 		return nil, err
 	}
-	certExtraSANs := fmt.Sprintf("IP:127.0.0.1,DNS:dind,DNS:*.dind.%s,DNS:*.dind.%s.svc,DNS:*.cf-cd.com,DNS:*.codefresh.io,DNS:%s", a.clusternamespace, a.clusternamespace, codefreshHost)
+	codefreshUrl, err := url.Parse(codefreshHost)
+	if err != nil {
+		a.logger.Debug("Failed to parse url %s: %s\n", codefreshHost, err)
+		return nil, err
+	}
+	certExtraSANs := fmt.Sprintf("IP:127.0.0.1,DNS:dind,DNS:*.dind.%s,DNS:*.dind.%s.svc,DNS:*.cf-cd.com,DNS:*.codefresh.io,DNS:%s", a.clusternamespace, a.clusternamespace, codefreshUrl.Host)
 	a.logger.Debug(fmt.Sprintf("certExtraSANs = %s", certExtraSANs))
 
 	byteArray, err := a.codefresh.RuntimeEnvironments().SignCertificate(&codefresh.SignCertificatesOptions{
