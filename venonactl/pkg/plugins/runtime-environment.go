@@ -70,7 +70,7 @@ func (u *runtimeEnvironmentPlugin) Install(ctx context.Context, opt *InstallOpti
 	}
 
 	cf := codefresh.NewCodefreshAPI(cfOpt)
-	cert, err := cf.Sign()
+	cert, err := cf.Sign(cfOpt.CodefreshHost)
 	if err != nil {
 		return nil, err
 	}

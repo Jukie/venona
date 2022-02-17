@@ -50,7 +50,7 @@ type (
 
 	RuntimeEnvironmentRegistrator interface {
 		Validate() error
-		Sign() (*certs.ServerCert, error)
+		Sign(codefreshHost string) (*certs.ServerCert, error)
 		Register() (*codefresh.RuntimeEnvironment, error)
 	}
 
@@ -113,13 +113,13 @@ func (a *api) Validate() error {
 	return a.codefresh.RuntimeEnvironments().Validate(&opt)
 }
 
-func (a *api) Sign() (*certs.ServerCert, error) {
+func (a *api) Sign(codefreshHost string) (*certs.ServerCert, error) {
 	a.logger.Debug("Signing runtime-environment")
 	serverCert, err := certs.NewServerCert()
 	if err != nil {
 		return nil, err
 	}
-	certExtraSANs := fmt.Sprintf("IP:127.0.0.1,DNS:dind,DNS:*.dind.%s,DNS:*.dind.%s.svc,DNS:*.cf-cd.com,DNS:*.codefresh.io", a.clusternamespace, a.clusternamespace)
+	certExtraSANs := fmt.Sprintf("IP:127.0.0.1,DNS:dind,DNS:*.dind.%s,DNS:*.dind.%s.svc,DNS:*.cf-cd.com,DNS:*.codefresh.io,DNS:%s", a.clusternamespace, a.clusternamespace, codefreshHost)
 	a.logger.Debug(fmt.Sprintf("certExtraSANs = %s", certExtraSANs))
 
 	byteArray, err := a.codefresh.RuntimeEnvironments().SignCertificate(&codefresh.SignCertificatesOptions{
